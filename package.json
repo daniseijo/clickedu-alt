@@ -10,6 +10,7 @@
     "format": "prettier --write src"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.2",
     "axios": "^1.6.2",
     "next": "14.0.4",
