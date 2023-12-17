@@ -5,6 +5,7 @@ import AppBar from './AppBar'
 import { getServerSession } from 'next-auth'
 import { authOptions } from './api/auth/[...nextauth]/auth'
 import Provider from './Provider'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,7 +22,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={inter.className}>
         <Provider session={session}>
           <AppBar />
-          <div className="min-h-screen">{children}</div>
+          <div className="min-h-screen">
+            {children}
+            <SpeedInsights />
+          </div>
         </Provider>
       </body>
     </html>
