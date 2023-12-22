@@ -1,4 +1,4 @@
-import { login } from '@/gateway/login'
+import { getUser } from '@/gateway/api/auth/user'
 import { AuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
@@ -20,9 +20,7 @@ export const authOptions: AuthOptions = {
         // Add logic here to look up the user from the credentials supplied
         if (!credentials) throw Error('No credentials')
 
-        return await login(credentials)
-
-        const user = { id: '1', name: 'J Smith', email: 'jsmith@example.com' }
+        const user = await getUser(credentials.webUrl, credentials.username, credentials.password)
 
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
@@ -36,4 +34,13 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      return { ...token, ...user }
+    },
+    async session({ session, token }) {
+      session.user = token
+      return session
+    },
+  },
 }
