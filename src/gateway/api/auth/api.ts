@@ -1,7 +1,8 @@
 import axios, { AxiosInstance } from 'axios'
-import { ITokenResponse } from './types'
+import { ITokenResponse, IValidateResponse } from './types'
 
 const LOGIN_PATH = '/login/v1/auth/token'
+const VALIDATE_PATH = 'login/v1/auth/token/validate'
 
 export class ClickeduApi {
   private instance: AxiosInstance
@@ -27,6 +28,16 @@ export class ClickeduApi {
     }
 
     const response = await this.instance.post<ITokenResponse>(LOGIN_PATH, data)
+
+    // TODO: Error handling
+
+    return response.data
+  }
+
+  public async validate(accessToken: string, childId: string): Promise<IValidateResponse> {
+    const response = await this.instance.get<IValidateResponse>(VALIDATE_PATH, {
+      params: { oauth_token: accessToken, child_id: childId },
+    })
 
     // TODO: Error handling
 

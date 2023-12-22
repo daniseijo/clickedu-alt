@@ -5,21 +5,23 @@ export async function getUser(webUrl: string, username: string, password: string
   try {
     const authApi = new AuthApi(webUrl)
 
-    const { token: accessToken } = await authApi.appClickeduInit()
+    const { token } = await authApi.appClickeduInit()
 
     const { id_usuari: childId } = await authApi.authorization({
-      access_token: accessToken,
+      access_token: token,
       user: username,
       pass: password,
     })
 
-    const { id_usuari: userId } = await authApi.appClickeduPermissions(accessToken, childId)
+    await authApi.appClickeduPermissions(token, childId)
 
     const clickeduApi = new ClickeduApi(webUrl)
 
-    const { access_token } = await clickeduApi.token(username, password)
+    const { access_token: accessToken } = await clickeduApi.token(username, password)
 
-    return { id: userId, childId, access_token }
+    const { id, user_id: userId } = await clickeduApi.validate(accessToken, childId)
+
+    return { id, userId, childId, accessToken }
   } catch (err) {
     console.error(JSON.stringify(err, null, 2))
     return null

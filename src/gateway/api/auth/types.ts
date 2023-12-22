@@ -26,3 +26,10 @@ export interface ITokenResponse {
   access_token: string
   refresh_token: string
 }
+
+export interface IValidateResponse {
+  id: string
+  user_id: number
+  ind_pm: number
+  revoked: boolean
+}
