@@ -1,11 +1,8 @@
-'use client'
-
-import { useSession } from 'next-auth/react'
+import { photoAlbums } from '@/gateway/api/clickeduQuery/clickeduQuery'
 import Image from 'next/image'
-import { Button } from './components/button'
 
-export default function Home() {
-  const { data: session } = useSession()
+export default async function Home() {
+  const photos = await photoAlbums()
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -38,12 +35,9 @@ export default function Home() {
       </div>
 
       <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <Button
-          session={session}
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-        >
-          Inits
-        </Button>
+        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
+          {JSON.stringify(photos, null, 2)}
+        </div>
 
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"

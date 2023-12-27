@@ -1,54 +1,60 @@
-import axios, { AxiosInstance } from 'axios'
+'use server'
 
-type Auth = {
-  authToken: string
-  secretToken: string
-  consKey: string
-  consSecret: string
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth'
+import wretch from 'wretch'
+import QueryStringAddon from 'wretch/addons/queryString'
+import { getServerSession } from 'next-auth'
+
+export async function init() {
+  const INIT_QUERY = '/init'
+
+  return defaultQuery(INIT_QUERY)
 }
 
-export class ClickeduQuery {
-  private instance: AxiosInstance
-  private auth: Auth
+export async function photoAlbums() {
+  const PHOTO_ALBUMS_QUERY = '/photo_albums'
 
-  constructor(baseUrl: string, auth: Auth) {
-    this.instance = axios.create({
-      baseURL: `https://${baseUrl}/ws/app_clickedu_query.php`,
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    })
-    this.auth = auth
+  const params = {
+    startLimit: 0,
+    endLimit: 10,
+    lan: 'es',
   }
 
-  public init(childId: string) {
-    const INIT_QUERY = '/init'
+  return defaultQuery(PHOTO_ALBUMS_QUERY, params)
+}
 
-    const params = {
-      query: INIT_QUERY,
-      auth_token: this.auth.authToken,
-      auth_secret: this.auth.secretToken,
-      cons_key: this.auth.consKey,
-      cons_secret: this.auth.consSecret,
-      id_fill: childId,
-    }
+async function defaultQuery(query: string, params: Record<string, string | number> = {}) {
+  try {
+    const { url, defaultParams } = await getUrlAndDefaultParams()
 
-    return this.instance.get('', { params })
+    const response = await wretch(url)
+      .addon(QueryStringAddon)
+      .query({ ...defaultParams, ...params, query })
+      .get()
+      .json<any>()
+
+    return response
+  } catch (error) {
+    return undefined
+  }
+}
+
+async function getUrlAndDefaultParams() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) throw new Error('No session found')
+
+  const { baseUrl, authToken, secretToken, childId } = session.user
+
+  const defaultParams = {
+    auth_token: authToken,
+    auth_secret: secretToken,
+    cons_key: process.env.CONS_KEY,
+    cons_secret: process.env.CONS_SECRET,
+    id_fill: childId,
   }
 
-  public photoAlbums(childId: string) {
-    const INIT_QUERY = '/photo_albums'
+  const url = `https://${baseUrl}/ws/app_clickedu_query.php`
 
-    const params = {
-      query: INIT_QUERY,
-      auth_token: this.auth.authToken,
-      auth_secret: this.auth.secretToken,
-      cons_key: this.auth.consKey,
-      cons_secret: this.auth.consSecret,
-      id_fill: childId,
-      startLimit: 0,
-      endLimit: 10,
-      lan: 'es',
-    }
-
-    return this.instance.get('', { params })
-  }
+  return { url, defaultParams }
 }

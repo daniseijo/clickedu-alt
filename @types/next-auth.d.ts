@@ -6,7 +6,7 @@ declare module 'next-auth' {
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
-    user: User
+    user?: User
   }
 
   interface User {
@@ -24,9 +24,5 @@ declare module 'next-auth' {
     authToken: string
     /** The secret token for the PHP client */
     secretToken: string
-    /** The app cons key */
-    consKey: string
-    /** The app cons secret */
-    consSecret: string
   }
 }

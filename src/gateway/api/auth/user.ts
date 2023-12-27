@@ -1,3 +1,5 @@
+'use server'
+
 import { User } from 'next-auth'
 import { AuthApi } from './auth'
 import { ClickeduApi } from './api'
@@ -32,8 +34,6 @@ export async function getUser(webUrl: string, username: string, password: string
       authToken: token,
       secretToken: secret,
       accessToken,
-      consKey: process.env.CONS_KEY ?? '',
-      consSecret: process.env.CONS_SECRET ?? '',
     }
   } catch (err) {
     console.error(JSON.stringify(err, null, 2))
