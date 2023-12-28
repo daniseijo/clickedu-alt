@@ -1,10 +1,10 @@
 'use server'
 
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth'
-import wretch from 'wretch'
 import QueryStringAddon from 'wretch/addons/queryString'
 import { getServerSession } from 'next-auth'
 import { IGetAlbumByIdResponse, IPhotoAlbumsResponse } from './types'
+import { fetcher } from '@/lib/fetcher'
 
 export async function init() {
   const INIT_QUERY = '/init'
@@ -21,7 +21,11 @@ export async function getPhotoAlbums() {
     lan: 'es',
   }
 
-  return defaultQuery<IPhotoAlbumsResponse>(PHOTO_ALBUMS_QUERY, params)
+  const response = await defaultQuery<IPhotoAlbumsResponse>(PHOTO_ALBUMS_QUERY, params)
+
+  response.albums = await fixImagesUrls(response.albums, ['coverImageLarge', 'coverImageSmall'])
+
+  return response
 }
 
 export async function getAlbumById(albumId: string) {
@@ -32,14 +36,18 @@ export async function getAlbumById(albumId: string) {
     lan: 'es',
   }
 
-  return defaultQuery<IGetAlbumByIdResponse>(PHOTO_ALBUMS_QUERY, params)
+  const response = await defaultQuery<IGetAlbumByIdResponse>(PHOTO_ALBUMS_QUERY, params)
+
+  response.photos = await fixImagesUrls(response.photos, ['pathLarge', 'pathSmall'])
+
+  return response
 }
 
-async function defaultQuery<T = unknown>(query: string, params: Record<string, string | number> = {}): Promise<T> {
+async function defaultQuery<T = {}>(query: string, params: Record<string, string | number> = {}): Promise<T> {
   try {
     const { baseUrl, defaultParams } = await getUrlAndDefaultParams()
 
-    const response = await wretch(baseUrl)
+    const response = await fetcher(baseUrl)
       .addon(QueryStringAddon)
       .query({ ...defaultParams, ...params, query })
       .get()
@@ -47,7 +55,7 @@ async function defaultQuery<T = unknown>(query: string, params: Record<string, s
 
     return response
   } catch (error) {
-    throw Error('Error fetching data')
+    throw Error(`Error fetching data: ${error}`)
   }
 }
 
@@ -69,6 +77,26 @@ async function getUrlAndDefaultParams() {
   const url = `https://${baseUrl}/ws/app_clickedu_query.php`
 
   return { baseUrl: url, defaultParams }
+}
+
+async function fixImagesUrls<T = {}>(pictures: T[], params: Array<keyof T>) {
+  const url = await getPhotoBaseUrl()
+
+  return pictures.map((picture) => {
+    const newPicture = { ...picture }
+
+    params.forEach((param) => {
+      const picturePath = picture[param] as string
+
+      if (picturePath) {
+        const newPath = url + picturePath.replace('../private/', '')
+
+        newPicture[param] = newPath as any
+      }
+    })
+
+    return newPicture
+  })
 }
 
 export async function getPhotoBaseUrl() {
