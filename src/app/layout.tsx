@@ -1,14 +1,17 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import AppBar from './AppBar'
+import { Inter as FontSans, Space_Grotesk as FontTitle } from 'next/font/google'
+import '@/styles/globals.css'
+import AppBar from './components/app-bar'
 import { getServerSession } from 'next-auth'
 import { authOptions } from './api/auth/[...nextauth]/auth'
 import Provider from './Provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/react'
+import { cn } from '@/lib/utils'
+import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const fontSans = FontSans({ subsets: ['latin'], variable: '--font-sans' })
+const fontTitle = FontTitle({ subsets: ['latin'], variable: '--font-title', weight: '700' })
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -19,16 +22,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getServerSession(authOptions)
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Provider session={session}>
-          <AppBar />
-          <div className="min-h-screen">
-            {children}
-            <SpeedInsights />
-            <Analytics />
-          </div>
-        </Provider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable, fontTitle.variable)}
+        suppressHydrationWarning
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Provider session={session}>
+            <AppBar className="fixed w-full" />
+            <div className="min-h-screen">
+              {session ? (
+                children
+              ) : (
+                <div className="flex text-center justify-center h-screen items-center">Unauthorized</div>
+              )}
+              <SpeedInsights />
+              <Analytics />
+            </div>
+          </Provider>
+        </ThemeProvider>
       </body>
     </html>
   )

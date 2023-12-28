@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth'
 import wretch from 'wretch'
 import QueryStringAddon from 'wretch/addons/queryString'
 import { getServerSession } from 'next-auth'
+import { IGetAlbumByIdResponse, IPhotoAlbumsResponse } from './types'
 
 export async function init() {
   const INIT_QUERY = '/init'
@@ -11,7 +12,7 @@ export async function init() {
   return defaultQuery(INIT_QUERY)
 }
 
-export async function photoAlbums() {
+export async function getPhotoAlbums() {
   const PHOTO_ALBUMS_QUERY = '/photo_albums'
 
   const params = {
@@ -20,22 +21,33 @@ export async function photoAlbums() {
     lan: 'es',
   }
 
-  return defaultQuery(PHOTO_ALBUMS_QUERY, params)
+  return defaultQuery<IPhotoAlbumsResponse>(PHOTO_ALBUMS_QUERY, params)
 }
 
-async function defaultQuery(query: string, params: Record<string, string | number> = {}) {
-  try {
-    const { url, defaultParams } = await getUrlAndDefaultParams()
+export async function getAlbumById(albumId: string) {
+  const PHOTO_ALBUMS_QUERY = '/pictures'
 
-    const response = await wretch(url)
+  const params = {
+    albumId,
+    lan: 'es',
+  }
+
+  return defaultQuery<IGetAlbumByIdResponse>(PHOTO_ALBUMS_QUERY, params)
+}
+
+async function defaultQuery<T = unknown>(query: string, params: Record<string, string | number> = {}): Promise<T> {
+  try {
+    const { baseUrl, defaultParams } = await getUrlAndDefaultParams()
+
+    const response = await wretch(baseUrl)
       .addon(QueryStringAddon)
       .query({ ...defaultParams, ...params, query })
       .get()
-      .json<any>()
+      .json<T>()
 
     return response
   } catch (error) {
-    return undefined
+    throw Error('Error fetching data')
   }
 }
 
@@ -56,5 +68,15 @@ async function getUrlAndDefaultParams() {
 
   const url = `https://${baseUrl}/ws/app_clickedu_query.php`
 
-  return { url, defaultParams }
+  return { baseUrl: url, defaultParams }
+}
+
+export async function getPhotoBaseUrl() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) throw new Error('No session found')
+
+  const { baseUrl, authToken, secretToken } = session.user
+
+  return `https://${baseUrl}/private/app-${process.env.CONS_KEY}-${process.env.CONS_SECRET}-${authToken}-${secretToken}/`
 }

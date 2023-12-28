@@ -1,7 +1,7 @@
 'use client'
 
 import { MouseEventHandler } from 'react'
-import { photoAlbums } from '@/gateway/api/clickeduQuery/clickeduQuery'
+import { getPhotoAlbums } from '@/gateway/api/clickeduQuery/clickeduQuery'
 
 interface ButtonProps {
   children: React.ReactNode
@@ -10,7 +10,7 @@ interface ButtonProps {
 
 export const Button = ({ className, children }: ButtonProps) => {
   const triggerInit: MouseEventHandler<HTMLButtonElement> = async () => {
-    console.log(await photoAlbums())
+    console.log(await getPhotoAlbums())
   }
   return (
     <button className={className} onClick={triggerInit}>
