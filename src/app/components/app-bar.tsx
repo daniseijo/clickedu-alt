@@ -17,9 +17,7 @@ const AppBar = ({ className }: { className?: string }) => {
         {session?.user ? (
           <Dropdown onLogOutClick={() => signOut()} />
         ) : (
-          <button className="text-green-600" onClick={() => signIn()}>
-            Sign in
-          </button>
+          <button onClick={() => signIn()}>Sign in</button>
         )}
       </div>
     </div>
