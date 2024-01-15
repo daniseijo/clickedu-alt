@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { Inter as FontSans, Space_Grotesk as FontTitle } from 'next/font/google'
 import '@/styles/globals.css'
 import AppBar from './components/app-bar'
-import { getServerSession } from 'next-auth'
-import { authOptions } from './api/auth/[...nextauth]/auth'
+import { auth } from './api/auth/[...nextauth]/auth'
 import Provider from './Provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/react'
@@ -19,7 +18,7 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   return (
     <html lang="en" suppressHydrationWarning>

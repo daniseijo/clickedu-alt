@@ -1,10 +1,9 @@
 'use server'
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth'
 import QueryStringAddon from 'wretch/addons/queryString'
-import { getServerSession } from 'next-auth'
 import { IGetAlbumByIdResponse, IPhotoAlbumsResponse } from './types'
 import { fetcher } from '@/lib/fetcher'
+import { auth } from '@/app/api/auth/[...nextauth]/auth'
 
 export async function init() {
   const INIT_QUERY = '/init'
@@ -43,7 +42,7 @@ export async function getAlbumById(albumId: string) {
   return response
 }
 
-async function defaultQuery<T = {}>(query: string, params: Record<string, string | number> = {}): Promise<T> {
+async function defaultQuery<T = object>(query: string, params: Record<string, string | number> = {}): Promise<T> {
   try {
     const { baseUrl, defaultParams } = await getUrlAndDefaultParams()
 
@@ -60,7 +59,7 @@ async function defaultQuery<T = {}>(query: string, params: Record<string, string
 }
 
 async function getUrlAndDefaultParams() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   if (!session?.user) throw new Error('No session found')
 
@@ -79,7 +78,7 @@ async function getUrlAndDefaultParams() {
   return { baseUrl: url, defaultParams }
 }
 
-async function fixImagesUrls<T = {}>(pictures: T[], params: Array<keyof T>) {
+async function fixImagesUrls<T = object>(pictures: T[], params: Array<keyof T>) {
   const url = await getPhotoBaseUrl()
 
   return pictures.map((picture) => {
@@ -91,7 +90,7 @@ async function fixImagesUrls<T = {}>(pictures: T[], params: Array<keyof T>) {
       if (picturePath) {
         const newPath = url + picturePath.replace('../private/', '')
 
-        newPicture[param] = newPath as any
+        newPicture[param] = newPath as T[keyof T]
       }
     })
 
@@ -100,7 +99,7 @@ async function fixImagesUrls<T = {}>(pictures: T[], params: Array<keyof T>) {
 }
 
 export async function getPhotoBaseUrl() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   if (!session?.user) throw new Error('No session found')
 

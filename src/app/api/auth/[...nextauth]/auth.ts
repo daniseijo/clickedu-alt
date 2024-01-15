@@ -1,20 +1,21 @@
 import { getUser } from '@/gateway/api/auth/user'
-import { AuthOptions } from 'next-auth'
+import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next'
+import { NextAuthOptions, User, getServerSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-export const authOptions: AuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       // The name to display on the sign in form (e.g. "Sign in with...")
-      name: 'Credentials',
+      name: 'Clickedu',
       // `credentials` is used to generate a form on the sign in page.
       // You can specify which fields should be submitted, by adding keys to the `credentials` object.
       // e.g. domain, username, password, 2FA token, etc.
       // You can pass any HTML attribute to the <input> tag through the object.
       credentials: {
         url: { label: 'Web url', type: 'text', placeholder: 'clickedu.eu' },
-        username: { label: 'Username', type: 'text', placeholder: 'jsmith' },
-        password: { label: 'Password', type: 'password' },
+        username: { label: 'Username', type: 'text', placeholder: 'username' },
+        password: { label: 'Password', type: 'password', placeholder: '********' },
       },
       async authorize(credentials, _req) {
         // Add logic here to look up the user from the credentials supplied
@@ -39,8 +40,15 @@ export const authOptions: AuthOptions = {
       return { ...token, ...user }
     },
     async session({ session, token }) {
-      session.user = token as any
+      session.user = token as object as User
       return session
     },
   },
+} satisfies NextAuthOptions
+
+// Use it in server contexts
+export function auth(
+  ...args: [GetServerSidePropsContext['req'], GetServerSidePropsContext['res']] | [NextApiRequest, NextApiResponse] | []
+) {
+  return getServerSession(...args, authOptions)
 }

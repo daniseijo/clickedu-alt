@@ -10,7 +10,7 @@ const AppBar = ({ className }: { className?: string }) => {
   const { data: session } = useSession()
 
   return (
-    <div className={cn('bg-muted items-center p-4 flex gap-5', className)}>
+    <div className={cn('bg-muted items-center p-4 flex gap-5 z-50', className)}>
       <h1 className="font-title text-2xl">clickedu</h1>
       <ModeToggle />
       <div className="ml-auto flex gap-5">
